@@ -1,2 +1,3 @@
 (executable
- (name accumulator))
+ (name accumulator)
+ (preprocess (pps ppx_deriving.show)))
