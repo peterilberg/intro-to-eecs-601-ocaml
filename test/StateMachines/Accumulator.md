@@ -3,10 +3,6 @@
 ## Set up the environment
 
 ```ocaml
-# #require "intro_to_ee_and_cs_with_ocaml"
-```
-
-```ocaml
 open IntroToEeAndCsWithOcaml
 ```
 
