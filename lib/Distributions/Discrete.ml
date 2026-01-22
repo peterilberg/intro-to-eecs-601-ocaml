@@ -1,79 +1,97 @@
-module type Event = sig
-  include Hashtbl.HashedType
-end
+type 'a t =
+  { events : 'a array
+  ; probabilities : floatarray
+  ; cumulative : floatarray
+  }
 
-module Make (E : Event) = struct
-  module Table = Hashtbl.Make (E)
+let enforce condition message =
+  if not condition then Stdlib.invalid_arg message
+;;
 
-  type t = float Table.t
-  type u = (E.t * float) Array.t
+let normalize_inplace array =
+  let total = Float.Array.fold_left ( +. ) 0.0 array in
+  enforce
+    (total > 0.0)
+    "Sum of weights of discrete events must be greater than 0.";
+  Float.Array.map_inplace (fun x -> x /. total) array
+;;
 
-  let enforce condition message =
-    if not condition then Stdlib.invalid_arg message
-  ;;
+let cumulative source =
+  let running_total = ref 0.0 in
+  Float.Array.init (Float.Array.length source) (fun i ->
+    running_total := !running_total +. Float.Array.get source i;
+    !running_total)
+;;
 
-  let normalize events =
-    let sum = events |> List.map Pair.snd |> List.fold_left ( +. ) 0.0 in
-    enforce
-      (sum > 0.0)
-      "Sum of weights of discrete events must be greater than 0.";
-    events |> List.map (fun (event, weight) -> event, weight /. sum)
-  ;;
+let remove_duplicates (type a) compare' list =
+  let module E = struct
+    type t = a
 
-  let create ~events =
-    enforce
-      (List.length events <> 0)
-      "Discrete distribution must have at least one event.";
-    normalize events |> List.to_seq |> Table.of_seq
-  ;;
+    let compare = compare'
+  end
+  in
+  let module Map = Map.Make (E) in
+  list
+  |> List.fold_left
+       (fun map (e, p) ->
+          Map.update
+            e
+            (function
+              | None -> Some p
+              | Some p' -> Some (p +. p'))
+            map)
+       Map.empty
+  |> Map.to_list
+;;
 
-  let support ~distribution = Table.to_seq_keys distribution |> List.of_seq
+let create ~events ~compare =
+  enforce
+    (List.length events <> 0)
+    "Discrete distribution must have at least one event.";
+  let events = remove_duplicates compare events in
+  let labels, weights = List.split events in
+  let events = Array.of_list labels in
+  let probabilities = Float.Array.of_list weights in
+  normalize_inplace probabilities;
+  let cumulative = cumulative probabilities in
+  { events; probabilities; cumulative }
+;;
 
-  let probability ~distribution ~event =
-    let option = Table.find_opt distribution event in
-    Option.value option ~default:0.0
-  ;;
+let support ~distribution = Array.to_list distribution.events
 
-  let draw ~distribution =
-    let number = Random.float 1.0 in
-    let support = support ~distribution in
-    let rec loop sum last = function
-      | [] -> last
-      | event :: rest ->
-        let sum = sum +. probability ~distribution ~event in
-        if number <= sum then event else loop sum event rest
-    in
-    loop 0.0 (List.hd support) (List.tl support)
-  ;;
-end
+let probability ~distribution ~event =
+  Array.find_index (fun item -> item = event) distribution.events
+  |> Option.fold ~none:0.0 ~some:(fun i ->
+    Float.Array.get distribution.probabilities i)
+;;
 
-(*
-    pub fn marginalize<NewEvent, Conversion>(
-        &self,
-        convert: Conversion,
-    ) -> Discrete<NewEvent>
-    where
-        NewEvent: Clone + Eq + Hash,
-        Conversion: Fn(&Event) -> NewEvent,
-    {
-        let mut distribution = HashMap::new();
-        for (old_event, probability) in self.distribution.iter() {
-            let new_event = convert(old_event);
-            let entry = distribution.entry(new_event).or_insert(0.0);
-            *entry += probability;
-        }
-        Discrete::build(distribution)
-    }
+let draw ~distribution =
+  let number = Random.float 1.0 in
+  let test item = number < item in
+  Float.Array.find_index test distribution.cumulative
+  |> Option.fold ~none:(Array.length distribution.events - 1) ~some:Fun.id
+  |> Array.get distribution.events
+;;
 
-    pub fn condition<Filter>(&self, filter: Filter) -> Discrete<Event>
-    where
-        Filter: FnMut(&&Event) -> bool,
-    {
-        Discrete::from_iter(
-            self.support()
-                .filter(filter)
-                .map(|event| (event.clone(), self.probability(event))),
-        )
-    }
-}
-*)
+let to_list distribution =
+  support ~distribution
+  |> List.map (fun event -> event, probability ~distribution ~event)
+;;
+
+let of_list events =
+  (* TODO create ~events ~compare:??? *)
+  { events = Array.of_list (events |> List.map fst)
+  ; probabilities = Float.Array.create 1
+  ; cumulative = Float.Array.create 1
+  }
+;;
+
+let marginalize ~distribution ~convert =
+  let events = Array.to_seq distribution.events in
+  let probabilities = Float.Array.to_seq distribution.probabilities in
+  create
+    ~events:
+      (Seq.zip events probabilities
+       |> Seq.filter_map (fun (e, p) -> Option.map (fun e -> e, p) (convert e))
+       |> List.of_seq)
+;;

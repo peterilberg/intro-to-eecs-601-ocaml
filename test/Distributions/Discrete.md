@@ -1,72 +1,97 @@
-# [cfg(test)]
-mod tests {
-    use super::*;
+# Tests for discrete probability distributions
 
-    #[test]
-    fn support_of_distribution_a() {
-        let d_a = distribution_a();
-        let mut support: Vec<_> = d_a.support().collect();
-        support.sort();
-        assert_eq!(support, [&"a1", &"a2"]);
-    }
+## Set up the environment
 
-    #[test]
-    fn probability_of_events_in_distribution_a() {
-        let d_a = distribution_a();
-        assert_eq!(d_a.probability(&"a1"), 0.9);
-        assert_eq!(d_a.probability(&"a2"), 0.1);
-    }
+```ocaml
+open IntroToEeAndCsWithOcaml
+open Distributions
+```
 
-    #[test]
-    fn draw_from_distribution_a() {
-        let d_a = distribution_a();
-        let mut results = HashMap::new();
-        for _ in 1..=100 {
-            let event = *d_a.draw();
-            *results.entry(event).or_insert(0) += 1;
-        }
-        assert!(results["a1"] > results["a2"]);
-    }
+```ocaml
+# #require "ppx_deriving.ord"
+# type test = A | B | C [@@deriving ord]
+type test = A | B | C
+val compare_test : test -> test -> int = <fun>
+```
 
-    #[test]
-    fn marginalize_distribution_without_a() {
-        assert_eq!(
-            distribution_a_and_b().marginalize(|(_, b)| *b),
-            Discrete::from([("b1", 0.65), ("b2", 0.35),])
-        )
-    }
+```ocaml
+# A
+- : test = A
+```
 
-    #[test]
-    fn marginalize_distribution_without_b() {
-        assert_eq!(
-            distribution_a_and_b().marginalize(|(a, _)| *a),
-            Discrete::from([("a1", 0.90), ("a2", 0.10),])
-        )
-    }
+```ocaml
+let events = [("a1", 0.9); ("a2", 0.1)]
+let distribution_a = Discrete.create ~events ~compare:String.compare
+```
 
-    #[test]
-    fn conditional_distribution_to_b1() {
-        assert_eq!(
-            distribution_a_and_b()
-                .condition(|(_, b)| b == &"b1")
-                .marginalize(|(a, _)| *a),
-            Discrete::from([("a1", 0.97), ("a2", 0.03),])
-        )
-    }
+```ocaml
+# Discrete.support ~distribution:distribution_a
+- : string list = ["a1"; "a2"]
+```
 
-    type A = &'static str;
-    type B = &'static str;
+```ocaml
+# Discrete.probability ~distribution:distribution_a ~event:"a1"
+- : float = 0.9
+# Discrete.probability ~distribution:distribution_a ~event:"a2"
+- : float = 0.1
+```
 
-    fn distribution_a() -> Discrete<A> {
-        Discrete::from([("a1", 0.9), ("a2", 0.1)])
-    }
+```ocaml
+module Table = Hashtbl.Make(String)
 
-    fn distribution_a_and_b() -> Discrete<(A, B)> {
-        Discrete::from([
-            (("a1", "b1"), 0.63),
-            (("a1", "b2"), 0.27),
-            (("a2", "b1"), 0.02),
-            (("a2", "b2"), 0.08),
-        ])
-    }
-}
+let sample ~seed ~distribution =
+  let table = events
+    |> List.map (fun (event, _) -> (event, 0))
+    |> List.to_seq
+    |> Table.of_seq in
+  Random.init seed;
+  for i = 1 to 100 do
+    let event = Discrete.draw ~distribution in
+    Table.replace table event (1 + Table.find table event)
+  done;
+  table |> Table.to_seq |> List.of_seq
+```
+
+```ocaml
+# sample ~seed:42 ~distribution:distribution_a
+- : (string * int) list = [("a2", 11); ("a1", 89)]
+```
+
+```ocaml
+type joint = string * string [@@deriving ord]
+let events = [
+  (("a1", "b1"), 0.63);
+  (("a1", "b2"), 0.27);
+  (("a2", "b1"), 0.02);
+  (("a2", "b2"), 0.08)
+]
+let distribution_a_and_b = Discrete.create ~events ~compare:compare_joint
+```
+
+```ocaml
+# Discrete.marginalize
+  ~distribution:distribution_a_and_b
+  ~convert:(fun (a, _) -> Some a)
+  ~compare:String.compare
+  |> Discrete.to_list
+- : (string * float) list = [("a1", 0.9); ("a2", 0.1)]
+```
+
+```ocaml
+# Discrete.marginalize
+  ~distribution:distribution_a_and_b
+  ~convert:(fun (_, b) -> Some b)
+  ~compare:String.compare
+  |> Discrete.to_list
+- : (string * float) list = [("b1", 0.65); ("b2", 0.350000000000000033)]
+```
+
+```ocaml
+# Discrete.marginalize
+  ~distribution:distribution_a_and_b
+  ~convert:(fun (a, b) -> if b = "b1" then Some a else None)
+  ~compare:String.compare
+  |> Discrete.to_list
+- : (string * float) list =
+[("a1", 0.969230769230769229); ("a2", 0.0307692307692307675)]
+```

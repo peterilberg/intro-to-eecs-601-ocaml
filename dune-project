@@ -21,6 +21,7 @@
  (description "A longer description")
  (depends
    ocaml
+   ppx_deriving
    (mdx :with-test))
  (tags
   ("add topics" "to describe" your project)))
