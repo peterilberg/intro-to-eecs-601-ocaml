@@ -12,4 +12,14 @@ module Make (M : Machine) : sig
     -> trace_result:(M.output list -> unit)
     -> execution:t
     -> t
+
+  type transition =
+    { step : int
+    ; from_state : M.state
+    ; to_state : M.state
+    ; input : M.input
+    ; output : M.output
+    }
+
+  val trajectory : execution:t -> inputs:M.input list -> transition list
 end
