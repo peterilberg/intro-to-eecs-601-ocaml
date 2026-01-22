@@ -1,9 +1,13 @@
-module type Accumulable = sig
-  type t
+open StateMachine.Interfaces
+open Utilities.Interfaces
 
-  val accumulate : t -> t -> t
-end
+module Make (A : Addable) : sig
+  include
+    Machine
+    with type t = A.t
+     and type input = A.t
+     and type output = A.t
+     and type state = A.t
 
-module Make (A : Accumulable) : sig
-  val make_with : initial_value:A.t -> (A.t, A.t, A.t) StateMachine.t
+  val create : initial_value:input -> t
 end

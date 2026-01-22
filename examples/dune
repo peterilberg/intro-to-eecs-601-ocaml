@@ -1,4 +1,0 @@
-(executable
- (name accumulator)
- (preprocess (pps ppx_deriving.show))
- (libraries intro_to_ee_and_cs_with_ocaml))

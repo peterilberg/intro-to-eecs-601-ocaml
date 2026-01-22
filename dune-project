@@ -19,8 +19,12 @@
  (name intro_to_ee_and_cs_with_ocaml)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml)
+ (depends
+   ocaml
+   (mdx :with-test))
  (tags
   ("add topics" "to describe" your project)))
+
+(using mdx 0.2)
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html

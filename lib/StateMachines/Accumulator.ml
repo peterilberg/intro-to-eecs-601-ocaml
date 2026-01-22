@@ -1,16 +1,19 @@
-module type Accumulable = sig
-  type t
+open StateMachine.Interfaces
+open Utilities.Interfaces
 
-  val accumulate : t -> t -> t
-end
+module Make (A : Addable) = struct
+  type t = A.t
+  type input = A.t
+  type output = A.t
+  type state = A.t
 
-module Make (A : Accumulable) = struct
-  let make_with ~initial_value =
-    let get_start_state () = initial_value in
-    let get_next_state s i =
-      let sum = A.accumulate s i in
-      sum, sum
-    in
-    StateMachine.make_with ~get_start_state ~get_next_state
+  let create ~initial_value = initial_value
+  let get_start_state ~machine = machine
+
+  let get_next_state ~machine:_ ~state ~input =
+    let sum = A.add state input in
+    sum, sum
   ;;
 end
+
+module _ : Machine = Make (Int)
