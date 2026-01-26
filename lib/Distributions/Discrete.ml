@@ -23,32 +23,10 @@ let cumulative source =
     !running_total)
 ;;
 
-let remove_duplicates (type a) compare' list =
-  let module E = struct
-    type t = a
-
-    let compare = compare'
-  end
-  in
-  let module Map = Map.Make (E) in
-  list
-  |> List.fold_left
-       (fun map (e, p) ->
-          Map.update
-            e
-            (function
-              | None -> Some p
-              | Some p' -> Some (p +. p'))
-            map)
-       Map.empty
-  |> Map.to_list
-;;
-
-let create ~events ~compare =
+let of_list events =
   enforce
     (List.length events <> 0)
     "Discrete distribution must have at least one event.";
-  let events = remove_duplicates compare events in
   let labels, weights = List.split events in
   let events = Array.of_list labels in
   let probabilities = Float.Array.of_list weights in
@@ -65,6 +43,12 @@ let probability ~distribution ~event =
     Float.Array.get distribution.probabilities i)
 ;;
 
+let to_list distribution =
+  List.combine
+    (Array.to_list distribution.events)
+    (Float.Array.to_list distribution.probabilities)
+;;
+
 let draw ~distribution =
   let number = Random.float 1.0 in
   let test item = number < item in
@@ -73,25 +57,24 @@ let draw ~distribution =
   |> Array.get distribution.events
 ;;
 
-let to_list distribution =
-  support ~distribution
-  |> List.map (fun event -> event, probability ~distribution ~event)
-;;
-
-let of_list events =
-  (* TODO create ~events ~compare:??? *)
-  { events = Array.of_list (events |> List.map fst)
-  ; probabilities = Float.Array.create 1
-  ; cumulative = Float.Array.create 1
-  }
-;;
-
 let marginalize ~distribution ~convert =
-  let events = Array.to_seq distribution.events in
-  let probabilities = Float.Array.to_seq distribution.probabilities in
-  create
-    ~events:
-      (Seq.zip events probabilities
-       |> Seq.filter_map (fun (e, p) -> Option.map (fun e -> e, p) (convert e))
-       |> List.of_seq)
+  let convert (event, probability) =
+    convert event |> Option.map (fun converted -> converted, probability)
+  in
+  distribution |> to_list |> List.filter_map convert |> of_list
+;;
+
+let sample ~distribution ~n = Array.init n (fun _ -> draw ~distribution)
+
+let tally (type a) ~compare samples =
+  let module Table =
+    Map.Make (struct
+      type t = a
+
+      let compare = compare
+    end)
+  in
+  let inc event = event |> Option.fold ~none:1 ~some:Int.succ |> Option.some in
+  let collect table event = Table.update event inc table in
+  samples |> Array.fold_left collect Table.empty |> Table.to_list
 ;;
