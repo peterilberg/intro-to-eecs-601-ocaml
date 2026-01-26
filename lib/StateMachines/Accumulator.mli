@@ -5,9 +5,9 @@ module Make (A : Addable) : sig
   include
     Machine
     with type t = A.t
-     and type input = A.t
-     and type output = A.t
-     and type state = A.t
+     and module Input = A
+     and module Output = A
+     and module State = A
 
-  val create : initial_value:input -> t
+  val create : initial_value:Input.t -> t
 end

@@ -1,14 +1,23 @@
 module type Machine = sig
   type t
-  type input
-  type output
-  type state
 
-  val get_start_state : machine:t -> state
+  module Input : sig
+    type t
+  end
+
+  module Output : sig
+    type t
+  end
+
+  module State : sig
+    type t
+  end
+
+  val get_start_state : machine:t -> State.t
 
   val get_next_state
     :  machine:t
-    -> state:state
-    -> input:input
-    -> state * output
+    -> state:State.t
+    -> input:Input.t
+    -> State.t * Output.t
 end

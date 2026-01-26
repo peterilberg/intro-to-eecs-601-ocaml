@@ -4,22 +4,23 @@ module Make (M : Machine) : sig
   type t
 
   val create : machine:M.t -> t
-  val run : execution:t -> inputs:M.input list -> M.output list
+  val run : execution:t -> inputs:M.Input.t list -> M.Output.t list
 
   val trace
-    :  trace_start:(M.state -> unit)
-    -> trace_step:(int -> M.state -> M.input -> M.output -> M.state -> unit)
-    -> trace_result:(M.output list -> unit)
+    :  trace_start:(M.State.t -> unit)
+    -> trace_step:
+         (int -> M.State.t -> M.Input.t -> M.Output.t -> M.State.t -> unit)
+    -> trace_result:(M.Output.t list -> unit)
     -> execution:t
     -> t
 
   type transition =
     { step : int
-    ; from_state : M.state
-    ; to_state : M.state
-    ; input : M.input
-    ; output : M.output
+    ; from_state : M.State.t
+    ; to_state : M.State.t
+    ; input : M.Input.t
+    ; output : M.Output.t
     }
 
-  val trajectory : execution:t -> inputs:M.input list -> transition list
+  val trajectory : execution:t -> inputs:M.Input.t list -> transition list
 end

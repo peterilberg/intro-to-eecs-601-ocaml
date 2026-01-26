@@ -3,10 +3,11 @@ open Interfaces
 module Make (M : Machine) = struct
   type t =
     { machine : M.t
-    ; mutable current_state : M.state
-    ; trace_start : M.state -> unit
-    ; trace_step : int -> M.state -> M.input -> M.output -> M.state -> unit
-    ; trace_result : M.output list -> unit
+    ; mutable current_state : M.State.t
+    ; trace_start : M.State.t -> unit
+    ; trace_step :
+        int -> M.State.t -> M.Input.t -> M.Output.t -> M.State.t -> unit
+    ; trace_result : M.Output.t list -> unit
     }
 
   let step execution i input =
@@ -43,10 +44,10 @@ module Make (M : Machine) = struct
 
   type transition =
     { step : int
-    ; from_state : M.state
-    ; to_state : M.state
-    ; input : M.input
-    ; output : M.output
+    ; from_state : M.State.t
+    ; to_state : M.State.t
+    ; input : M.Input.t
+    ; output : M.Output.t
     }
 
   let trajectory ~execution ~inputs =
