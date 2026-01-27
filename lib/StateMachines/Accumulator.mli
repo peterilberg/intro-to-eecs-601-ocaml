@@ -1,5 +1,5 @@
-open StateMachine.Interfaces
-open Utilities.Interfaces
+open StateMachine
+open Utilities.Addable
 
 module Make
     (A : Addable)

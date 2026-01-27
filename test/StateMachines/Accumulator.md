@@ -3,19 +3,18 @@
 ## Set up the environment
 
 ```ocaml
-open IntroToEeAndCsWithOcaml
+open Eecs601
 ```
 
 ```ocaml
-module Accumulator = StateMachines.Accumulator
 module Machine = StateMachines.Accumulator.Make
   (Int)
   (struct
     let initial_value = 0
    end)
-module Run = StateMachine.Execution.Run (Machine)
-module Transitions = StateMachine.Execution.Transitions (Machine)
-module Trace = StateMachine.Execution.Trace (Machine) (Int) (Int) (Int)
+module Run = StateMachines.Run.Make (Machine)
+module Trace = StateMachines.Trace.Make (Machine) (Int) (Int) (Int)
+module Transitions = StateMachines.Transitions.Make (Machine)
 ```
 
 ## Tests

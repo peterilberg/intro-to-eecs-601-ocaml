@@ -3,9 +3,12 @@
 ## Set up the environment
 
 ```ocaml
-open IntroToEeAndCsWithOcaml
+open Eecs601
 open Distributions
 ```
+
+Currently, the tests do not need `[@@deriving ord]`.
+We keep it if they need it in the future.
 
 ```ocaml
 # #require "ppx_deriving.ord"

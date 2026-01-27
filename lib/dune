@@ -1,5 +1,5 @@
 (library
- (public_name intro_to_ee_and_cs_with_ocaml)
- (name IntroToEeAndCsWithOcaml))
+ (public_name eecs601)
+ (name eecs601))
 
 (include_subdirs qualified)
