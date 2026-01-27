@@ -12,5 +12,5 @@ module type StateMachine = sig
   end
 
   val get_start_state : unit -> State.t
-  val get_next_state : state:State.t -> input:Input.t -> State.t * Output.t
+  val get_next_state : State.t -> Input.t -> State.t * Output.t
 end

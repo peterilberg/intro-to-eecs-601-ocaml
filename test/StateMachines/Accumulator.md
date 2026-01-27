@@ -13,11 +13,9 @@ module Machine = StateMachines.Accumulator.Make
   (struct
     let initial_value = 0
    end)
-module Execution = StateMachine.Execution.Make (Machine)
-```
-
-```ocaml
-module Trace = Execution.Trace (Int) (Int) (Int)
+module Run = StateMachine.Execution.Run (Machine)
+module Transitions = StateMachine.Execution.Transitions (Machine)
+module Trace = StateMachine.Execution.Trace (Machine) (Int) (Int) (Int)
 ```
 
 ## Tests
@@ -27,12 +25,12 @@ let inputs = [ 100; -3; 4; -123; 10 ]
 ```
 
 ```ocaml
-# Execution.run ~inputs
+# Run.run inputs
 - : int list = [100; 97; 101; -22; -12]
 ```
 
 ```ocaml
-# Trace.run ~inputs
+# Trace.run inputs
 Start state: 0
 0: input 100 produces 100 with new state: 100
 1: input -3 produces 97 with new state: 97
@@ -44,16 +42,16 @@ Output: [100, 97, 101, -22, -12]
 ```
 
 ```ocaml
-# Execution.transitions ~inputs
-- : Execution.transition list =
-[{Execution.step = 0; from_state = 0; to_state = 100; input = 100;
+# Transitions.run inputs
+- : Transitions.transition list =
+[{Transitions.n = 0; old_state = 0; new_state = 100; input = 100;
   output = 100};
- {Execution.step = 1; from_state = 100; to_state = 97; input = -3;
+ {Transitions.n = 1; old_state = 100; new_state = 97; input = -3;
   output = 97};
- {Execution.step = 2; from_state = 97; to_state = 101; input = 4;
+ {Transitions.n = 2; old_state = 97; new_state = 101; input = 4;
   output = 101};
- {Execution.step = 3; from_state = 101; to_state = -22; input = -123;
+ {Transitions.n = 3; old_state = 101; new_state = -22; input = -123;
   output = -22};
- {Execution.step = 4; from_state = -22; to_state = -12; input = 10;
+ {Transitions.n = 4; old_state = -22; new_state = -12; input = 10;
   output = -12}]
 ```

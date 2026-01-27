@@ -13,7 +13,7 @@ struct
 
   let get_start_state () = C.initial_value
 
-  let get_next_state ~state ~input =
+  let get_next_state state input =
     let sum = A.add state input in
     sum, sum
   ;;

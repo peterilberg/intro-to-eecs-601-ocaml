@@ -1,87 +1,144 @@
 open Interfaces
 open Utilities.Interfaces
 
-module Make (SM : StateMachine) = struct
-  type 'a execution =
-    { state : SM.State.t
-    ; n : int
-    ; result : 'a
+module type Executable = sig
+  module Input : sig
+    type t
+  end
+
+  module Output : sig
+    type t
+  end
+
+  module State : sig
+    type t
+  end
+
+  val start : unit -> State.t
+  val step : int -> State.t -> Input.t -> State.t * Output.t
+  val finish : Output.t list -> Output.t list
+end
+
+module Execution (E : Executable) = struct
+  type 'a t =
+    { n : int
+    ; state : E.State.t
+    ; outputs : E.Output.t list
     }
 
-  (* TODO extract start, step, result into local module? *)
-  let run ~inputs =
-    let start = { state = SM.get_start_state (); n = 0; result = [] } in
+  let execute inputs =
+    let start = { n = 0; state = E.start (); outputs = [] } in
     let step execution input =
-      let { state; n; result } = execution in
-      let state, output = SM.get_next_state ~state ~input in
-      { state; n = n + 1; result = output :: result }
+      let { state; n; outputs } = execution in
+      let state, output = E.step n state input in
+      { state; n = n + 1; outputs = output :: outputs }
     in
-    let result execution = execution.result |> List.rev in
-    inputs |> List.fold_left step start |> result
+    let outputs execution = execution.outputs in
+    inputs |> List.fold_left step start |> outputs |> List.rev |> E.finish
   ;;
+end
 
+module Run (SM : StateMachine) = struct
+  module E :
+    Executable
+    with module Input = SM.Input
+     and module Output = SM.Output
+     and module State = SM.State = struct
+    module Input = SM.Input
+    module Output = SM.Output
+    module State = SM.State
+
+    let start () = SM.get_start_state ()
+    let step _n state input = SM.get_next_state state input
+    let finish outputs = outputs
+  end
+
+  let run inputs =
+    let module Execution = Execution (E) in
+    Execution.execute inputs
+  ;;
+end
+
+module Transitions (SM : StateMachine) = struct
   type transition =
-    { step : int
-    ; from_state : SM.State.t
-    ; to_state : SM.State.t
+    { n : int
+    ; old_state : SM.State.t
+    ; new_state : SM.State.t
     ; input : SM.Input.t
     ; output : SM.Output.t
     }
 
-  let transitions ~inputs =
-    let start = { state = SM.get_start_state (); n = 0; result = [] } in
-    let step execution input =
-      let { state = from_state; n; result } = execution in
-      let to_state, output = SM.get_next_state ~state:from_state ~input in
-      let transition = { step = n; from_state; to_state; input; output } in
-      { state = to_state; n = n + 1; result = transition :: result }
-    in
-    let result execution = execution.result |> List.rev in
-    inputs |> List.fold_left step start |> result
-  ;;
+  module Transition = struct
+    type t = transition
+  end
 
-  module Trace
-      (Input : Printable with type t = SM.Input.t)
-      (Output : Printable with type t = SM.Output.t)
-      (State : Printable with type t = SM.State.t) =
-  struct
-    let trace_start state =
-      Printf.printf "Start state: %s\n" (State.to_string state)
+  module E :
+    Executable
+    with module Input = SM.Input
+     and module Output = Transition
+     and module State = SM.State = struct
+    module Input = SM.Input
+    module Output = Transition
+    module State = SM.State
+
+    let start () = SM.get_start_state ()
+
+    let step n old_state input =
+      let new_state, output = SM.get_next_state old_state input in
+      new_state, { n; old_state; new_state; input; output }
     ;;
 
-    let trace_step n input output state =
+    let finish outputs = outputs
+  end
+
+  let run inputs =
+    let module Execution = Execution (E) in
+    Execution.execute inputs
+  ;;
+end
+
+module Trace
+    (SM : StateMachine)
+    (Input : Printable with type t = SM.Input.t)
+    (Output : Printable with type t = SM.Output.t)
+    (State : Printable with type t = SM.State.t) =
+struct
+  module E :
+    Executable
+    with module Input = SM.Input
+     and module Output = SM.Output
+     and module State = SM.State = struct
+    module Input = Input
+    module Output = Output
+    module State = State
+
+    let start () =
+      let state = SM.get_start_state () in
+      Printf.printf "Start state: %s\n" (State.to_string state);
+      state
+    ;;
+
+    let step n state input =
+      let state, output = SM.get_next_state state input in
       Printf.printf
         "%d: input %s produces %s with new state: %s\n"
         n
         (Input.to_string input)
         (Output.to_string output)
-        (State.to_string state)
+        (State.to_string state);
+      state, output
     ;;
 
-    let trace_result result =
-      let elements = List.map Output.to_string result in
+    let finish outputs =
+      let elements = List.map Output.to_string outputs in
       let list = "[" ^ String.concat ", " elements ^ "]" in
-      Printf.printf "Output: %s\n" list
-    ;;
-
-    let run ~inputs =
-      let start =
-        let start = { state = SM.get_start_state (); n = 0; result = [] } in
-        trace_start start.state;
-        start
-      in
-      let step execution input =
-        let { state; n; result } = execution in
-        let state, output = SM.get_next_state ~state ~input in
-        trace_step n input output state;
-        { state; n = n + 1; result = output :: result }
-      in
-      let result execution =
-        let result = execution.result |> List.rev in
-        trace_result result;
-        result
-      in
-      inputs |> List.fold_left step start |> result
+      Printf.printf "Output: %s\n" list;
+      outputs
     ;;
   end
+
+  let run inputs =
+    let module Execution = Execution (E) in
+    Execution.execute inputs
+  ;;
 end
