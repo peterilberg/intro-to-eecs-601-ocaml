@@ -1,26 +1,23 @@
 open Interfaces
+open Utilities.Interfaces
 
-module Make (M : Machine) : sig
-  type t
-
-  val create : machine:M.t -> t
-  val run : execution:t -> inputs:M.Input.t list -> M.Output.t list
-
-  val trace
-    :  trace_start:(M.State.t -> unit)
-    -> trace_step:
-         (int -> M.State.t -> M.Input.t -> M.Output.t -> M.State.t -> unit)
-    -> trace_result:(M.Output.t list -> unit)
-    -> execution:t
-    -> t
+module Make (SM : StateMachine) : sig
+  val run : inputs:SM.Input.t list -> SM.Output.t list
 
   type transition =
     { step : int
-    ; from_state : M.State.t
-    ; to_state : M.State.t
-    ; input : M.Input.t
-    ; output : M.Output.t
+    ; from_state : SM.State.t
+    ; to_state : SM.State.t
+    ; input : SM.Input.t
+    ; output : SM.Output.t
     }
 
-  val trajectory : execution:t -> inputs:M.Input.t list -> transition list
+  val transitions : inputs:SM.Input.t list -> transition list
+
+  module Trace
+      (Input : Printable with type t = SM.Input.t)
+      (Output : Printable with type t = SM.Output.t)
+      (_ : Printable with type t = SM.State.t) : sig
+    val run : inputs:Input.t list -> Output.t list
+  end
 end
