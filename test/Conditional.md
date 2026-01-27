@@ -60,8 +60,8 @@ let distribution_test_given_disease = function
 ```ocaml
 # Conditional.total_probability distribution_test_given_disease
   ~prior: distribution_disease
+  |> Discrete.condense ~compare:compare_test
   |> Discrete.to_list
 - : (test * float) list =
-[(Positive, 0.00099); (Negative, 1e-05); (Positive, 0.000999);
- (Negative, 0.998001)]
+[(Positive, 0.00198900000000000032); (Negative, 0.998011)]
 ```

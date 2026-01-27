@@ -23,9 +23,8 @@ let support distribution = List.map fst distribution
 
 let probability distribution event =
   distribution
-  |> List.filter (fun (e, _) -> e = event)
-  |> List.map snd
-  |> List.fold_left ( +. ) 0.0
+  |> List.find_opt (fun (e, _) -> e = event)
+  |> Option.fold ~none:0.0 ~some:snd
 ;;
 
 let draw distribution =
@@ -44,9 +43,7 @@ let marginalize distribution ~convert =
   distribution |> to_list |> List.filter_map convert |> of_list
 ;;
 
-let sample distribution n = Array.init n (fun _ -> draw distribution)
-
-let tally (type a) ~compare samples =
+let collect (type a) ~compare ~key ~default ~update sequence =
   let module Table =
     Map.Make (struct
       type t = a
@@ -54,9 +51,27 @@ let tally (type a) ~compare samples =
       let compare = compare
     end)
   in
-  let inc option =
-    option |> Option.fold ~none:1 ~some:Int.succ |> Option.some
+  let update item found =
+    found
+    |> Option.fold ~none:(default item) ~some:(fun value -> update item value)
+    |> Option.some
   in
-  let collect table event = Table.update event inc table in
-  samples |> Array.fold_left collect Table.empty |> Table.to_list
+  let process table item = Table.update (key item) (update item) table in
+  sequence |> Seq.fold_left process Table.empty |> Table.to_list
+;;
+
+let condense distribution ~compare =
+  distribution
+  |> to_list
+  |> List.to_seq
+  |> collect ~compare ~key:fst ~default:snd ~update:(fun (_, p) v -> p +. v)
+;;
+
+let sample distribution n = Array.init n (fun _ -> draw distribution)
+
+let tally ~compare samples =
+  samples
+  |> Array.to_seq
+  |> collect ~compare ~key:Fun.id ~default:(Fun.const 1) ~update:(fun _ ->
+    Int.succ)
 ;;

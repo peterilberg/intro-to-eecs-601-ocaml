@@ -48,18 +48,18 @@ let distribution_a_and_b = Discrete.of_list events
 # Discrete.marginalize
   distribution_a_and_b
   ~convert:(fun (a, _) -> Some a)
+  |> Discrete.condense ~compare:String.compare
   |> Discrete.to_list
-- : (string * float) list =
-[("a1", 0.63); ("a1", 0.27); ("a2", 0.02); ("a2", 0.08)]
+- : (string * float) list = [("a1", 0.9); ("a2", 0.1)]
 ```
 
 ```ocaml
 # Discrete.marginalize
   distribution_a_and_b
   ~convert:(fun (_, b) -> Some b)
+  |> Discrete.condense ~compare:String.compare
   |> Discrete.to_list
-- : (string * float) list =
-[("b1", 0.63); ("b2", 0.27); ("b1", 0.02); ("b2", 0.08)]
+- : (string * float) list = [("b1", 0.65); ("b2", 0.350000000000000033)]
 ```
 
 ```ocaml
