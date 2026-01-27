@@ -7,13 +7,6 @@ open Eecs601
 open Distributions
 ```
 
-Currently, the tests do not need `[@@deriving ord]`.
-We keep it if they need it in the future.
-
-```ocaml
-# #require "ppx_deriving.ord"
-```
-
 ```ocaml
 let events = [("a1", 0.9); ("a2", 0.1)]
 let distribution_a = Discrete.of_list events

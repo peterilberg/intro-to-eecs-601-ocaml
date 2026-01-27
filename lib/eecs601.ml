@@ -9,7 +9,7 @@ module Distributions = struct
   module Square = Square
   module Triangle = Triangle
   module Uniform = Uniform
-  (*  module Conditional = Conditional *)
+  module Conditional = Conditional
 end
 
 module StateMachines = struct
