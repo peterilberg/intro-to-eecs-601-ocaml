@@ -4,6 +4,12 @@ open Utilities
 
 module Distributions = struct
   module Discrete = Discrete
+  module Delta = Delta
+  module Mixed = Mixed
+  module Square = Square
+  module Triangle = Triangle
+  module Uniform = Uniform
+  (*  module Conditional = Conditional *)
 end
 
 module StateMachines = struct

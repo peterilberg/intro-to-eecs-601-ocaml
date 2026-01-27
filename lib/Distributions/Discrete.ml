@@ -1,8 +1,6 @@
-type 'a t = ('a * float) list
+open Utilities.Miscellaneous
 
-let enforce condition message =
-  if not condition then Stdlib.invalid_arg message
-;;
+type 'a t = ('a * float) list
 
 let normalize list =
   let sum = list |> List.map snd |> List.fold_left ( +. ) 0.0 in
