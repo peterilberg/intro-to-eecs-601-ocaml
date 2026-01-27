@@ -1,70 +1,52 @@
-type 'a t =
-  { events : 'a array
-  ; probabilities : floatarray
-  ; cumulative : floatarray
-  }
+type 'a t = ('a * float) list
 
 let enforce condition message =
   if not condition then Stdlib.invalid_arg message
 ;;
 
-let normalize_inplace array =
-  let total = Float.Array.fold_left ( +. ) 0.0 array in
+let normalize list =
+  let sum = list |> List.map snd |> List.fold_left ( +. ) 0.0 in
   enforce
-    (total > 0.0)
+    (sum > 0.0)
     "Sum of weights of discrete events must be greater than 0.";
-  Float.Array.map_inplace (fun x -> x /. total) array
-;;
-
-let cumulative source =
-  let running_total = ref 0.0 in
-  Float.Array.init (Float.Array.length source) (fun i ->
-    running_total := !running_total +. Float.Array.get source i;
-    !running_total)
+  let normalize (e, p) = e, p /. sum in
+  List.map normalize list
 ;;
 
 let of_list events =
   enforce
     (List.length events <> 0)
     "Discrete distribution must have at least one event.";
-  let labels, weights = List.split events in
-  let events = Array.of_list labels in
-  let probabilities = Float.Array.of_list weights in
-  normalize_inplace probabilities;
-  let cumulative = cumulative probabilities in
-  { events; probabilities; cumulative }
+  normalize events
 ;;
 
-let support ~distribution = Array.to_list distribution.events
+let to_list distribution = distribution
+let support distribution = List.map fst distribution
 
-let probability ~distribution ~event =
-  Array.find_index (fun item -> item = event) distribution.events
-  |> Option.fold ~none:0.0 ~some:(fun i ->
-    Float.Array.get distribution.probabilities i)
+let probability distribution event =
+  distribution
+  |> List.filter (fun (e, _) -> e = event)
+  |> List.map snd
+  |> List.fold_left ( +. ) 0.0
 ;;
 
-let to_list distribution =
-  List.combine
-    (Array.to_list distribution.events)
-    (Float.Array.to_list distribution.probabilities)
-;;
-
-let draw ~distribution =
+let draw distribution =
   let number = Random.float 1.0 in
-  let test item = number < item in
-  Float.Array.find_index test distribution.cumulative
-  |> Option.fold ~none:(Array.length distribution.events - 1) ~some:Fun.id
-  |> Array.get distribution.events
+  let rec find sum = function
+    | [] -> failwith "Discrete distribution cannot be empty."
+    | [ (e, _) ] -> e
+    | (e, p) :: _ when number < sum +. p -> e
+    | (_, p) :: rest -> find (sum +. p) rest
+  in
+  find 0.0 distribution
 ;;
 
-let marginalize ~distribution ~convert =
-  let convert (event, probability) =
-    convert event |> Option.map (fun converted -> converted, probability)
-  in
+let marginalize distribution ~convert =
+  let convert (e, p) = convert e |> Option.map (fun e -> e, p) in
   distribution |> to_list |> List.filter_map convert |> of_list
 ;;
 
-let sample ~distribution ~n = Array.init n (fun _ -> draw ~distribution)
+let sample distribution n = Array.init n (fun _ -> draw distribution)
 
 let tally (type a) ~compare samples =
   let module Table =
@@ -74,7 +56,9 @@ let tally (type a) ~compare samples =
       let compare = compare
     end)
   in
-  let inc event = event |> Option.fold ~none:1 ~some:Int.succ |> Option.some in
+  let inc option =
+    option |> Option.fold ~none:1 ~some:Int.succ |> Option.some
+  in
   let collect table event = Table.update event inc table in
   samples |> Array.fold_left collect Table.empty |> Table.to_list
 ;;

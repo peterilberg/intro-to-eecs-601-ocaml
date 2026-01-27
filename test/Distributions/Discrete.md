@@ -20,14 +20,14 @@ let distribution_a = Discrete.of_list events
 ```
 
 ```ocaml
-# Discrete.support ~distribution:distribution_a
+# Discrete.support distribution_a
 - : string list = ["a1"; "a2"]
 ```
 
 ```ocaml
-# Discrete.probability ~distribution:distribution_a ~event:"a1"
+# Discrete.probability distribution_a "a1"
 - : float = 0.9
-# Discrete.probability ~distribution:distribution_a ~event:"a2"
+# Discrete.probability distribution_a "a2"
 - : float = 0.1
 ```
 
@@ -36,7 +36,7 @@ Random.init 42
 ```
 
 ```ocaml
-# Discrete.sample ~n:100 ~distribution:distribution_a
+# Discrete.sample distribution_a 100
   |> Discrete.tally ~compare:String.compare
 - : (string * int) list = [("a1", 89); ("a2", 11)]
 ```
@@ -53,7 +53,7 @@ let distribution_a_and_b = Discrete.of_list events
 
 ```ocaml
 # Discrete.marginalize
-  ~distribution:distribution_a_and_b
+  distribution_a_and_b
   ~convert:(fun (a, _) -> Some a)
   |> Discrete.to_list
 - : (string * float) list =
@@ -62,7 +62,7 @@ let distribution_a_and_b = Discrete.of_list events
 
 ```ocaml
 # Discrete.marginalize
-  ~distribution:distribution_a_and_b
+  distribution_a_and_b
   ~convert:(fun (_, b) -> Some b)
   |> Discrete.to_list
 - : (string * float) list =
@@ -71,7 +71,7 @@ let distribution_a_and_b = Discrete.of_list events
 
 ```ocaml
 # Discrete.marginalize
-  ~distribution:distribution_a_and_b
+  distribution_a_and_b
   ~convert:(fun (a, b) -> if b = "b1" then Some a else None)
   |> Discrete.to_list
 - : (string * float) list =
