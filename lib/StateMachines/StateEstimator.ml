@@ -2,17 +2,15 @@ open Distributions
 open StochasticModel
 
 module Make (M : StochasticModel) = struct
-  module Interaction = struct
+  module Input = struct
     type t = M.Input.t * M.Output.t
   end
 
-  module Estimate = struct
+  module Output = struct
     type t = M.State.t Discrete.t
   end
 
-  module Input = Interaction
-  module Output = Estimate
-  module State = Estimate
+  module State = Output
 
   let get_start_state () = M.initial_state
 

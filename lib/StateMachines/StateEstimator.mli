@@ -3,17 +3,17 @@ open StateMachine
 open StochasticModel
 
 module Make (M : StochasticModel) : sig
-  module Interaction : sig
+  module Input : sig
     type t = M.Input.t * M.Output.t
   end
 
-  module Estimate : sig
+  module Output : sig
     type t = M.State.t Discrete.t
   end
 
   include
     StateMachine
-    with module Input = Interaction
-     and module Output = Estimate
-     and module State = Estimate
+    with module Input := Input
+     and module Output := Output
+     and module State = Output
 end
