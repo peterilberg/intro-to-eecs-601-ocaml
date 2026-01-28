@@ -15,12 +15,15 @@ end
 module StateMachines = struct
   module Signatures = struct
     module type StateMachine = StateMachine.StateMachine
+    module type StochasticModel = StochasticModel.StochasticModel
   end
 
   module Run = Run
   module Trace = Trace
   module Transitions = Transitions
   module Accumulator = Accumulator
+  module Stochastic = Stochastic
+  module StateEstimator = StateEstimator
 end
 
 module Utilities = struct

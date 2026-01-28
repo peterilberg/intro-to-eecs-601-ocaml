@@ -1,2 +1,4 @@
 (mdx
-  (libraries eecs601))
+  (libraries eecs601)
+  (deps
+    CopyMachineModel.ml))

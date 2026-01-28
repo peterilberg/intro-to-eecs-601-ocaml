@@ -1,4 +1,3 @@
-open StateMachine
 open Utilities.Addable
 
 module Make
@@ -18,10 +17,3 @@ struct
     sum, sum
   ;;
 end
-
-module _ : StateMachine =
-  Make
-    (Int)
-    (struct
-      let initial_value = 0
-    end)
