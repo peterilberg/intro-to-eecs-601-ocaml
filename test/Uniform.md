@@ -1,4 +1,4 @@
-# Tests for delta distributions
+# Tests for uniform distributions
 
 ## Set up the environment
 

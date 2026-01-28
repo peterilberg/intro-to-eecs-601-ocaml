@@ -1,4 +1,4 @@
-# Tests for delta distributions
+# Tests for square distributions
 
 ## Set up the environment
 

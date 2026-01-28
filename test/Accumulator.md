@@ -1,4 +1,4 @@
-# Tests for the Accumulator state machine
+# Tests for the accumulator state machine
 
 ## Set up the environment
 

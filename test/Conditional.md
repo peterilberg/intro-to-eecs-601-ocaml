@@ -1,4 +1,4 @@
-# Tests for delta distributions
+# Tests for conditional probability distributions
 
 ## Set up the environment
 

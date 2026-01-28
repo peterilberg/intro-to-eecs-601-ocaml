@@ -1,4 +1,4 @@
-# Tests for delta distributions
+# Tests for triangle distributions
 
 ## Set up the environment
 
