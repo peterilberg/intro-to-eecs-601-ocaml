@@ -60,7 +60,7 @@ let collect (type a) ~compare ~key ~default ~update sequence =
   sequence |> Seq.fold_left process Table.empty |> Table.to_list
 ;;
 
-let condense distribution ~compare =
+let merge_events distribution ~compare =
   distribution
   |> to_list
   |> List.to_seq
