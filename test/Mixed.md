@@ -13,6 +13,8 @@ let square = Square.of_interval ~low:0 ~high:3
 let distribution = Mixed.of_distributions triangle square ~mix:0.3
 ```
 
+## Tests
+
 ```ocaml
 # Discrete.to_list distribution
 - : (int * float) list =

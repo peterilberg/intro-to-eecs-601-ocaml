@@ -11,6 +11,8 @@ open Distributions
 let distribution_a = Square.of_interval ~low:(-1) ~high:2
 ```
 
+## Tests
+
 ```ocaml
 # Discrete.to_list distribution_a
 - : (int * float) list =

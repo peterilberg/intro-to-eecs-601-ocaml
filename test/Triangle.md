@@ -13,6 +13,8 @@ let distribution_2 = Triangle.of_triangle ~peak:3 ~half_width:2
 let distribution_3 = Triangle.of_triangle ~peak:3 ~half_width:1
 ```
 
+## Tests
+
 ```ocaml
 # Discrete.to_list distribution_1
 - : (int * float) list =

@@ -42,6 +42,8 @@ let inputs = CopyMachineModel.([
 module CopyMachine = Run.Make (StateEstimator.Make (CopyMachineModel))
 ```
 
+## Tests
+
 ```ocaml
 # CopyMachine.run inputs
   |> List.map (Discrete.merge_events ~compare:compare_state)

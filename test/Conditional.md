@@ -20,6 +20,8 @@ let distribution_b_and_a = Conditional.join distribution_b_given_a
   ~given:distribution_a
 ```
 
+## Tests
+
 ```ocaml
 # distribution_b_given_a "a1" |> Discrete.to_list
 - : (string * float) list = [("b1", 0.7); ("b2", 0.3)]

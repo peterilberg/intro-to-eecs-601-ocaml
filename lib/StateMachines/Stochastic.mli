@@ -1,6 +1,7 @@
 open StateMachine
 open StochasticModel
 
+(** A stochastic state machine. *)
 module Make (M : StochasticModel) : sig
   include
     StateMachine

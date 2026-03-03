@@ -2,6 +2,7 @@ open Distributions
 open StateMachine
 open StochasticModel
 
+(** A state estimation state machine. *)
 module Make (M : StochasticModel) : sig
   module Input : sig
     type t = M.Input.t * M.Output.t

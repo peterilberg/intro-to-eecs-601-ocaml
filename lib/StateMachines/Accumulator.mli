@@ -1,6 +1,7 @@
 open StateMachine
 open Utilities.Addable
 
+(** An accumulator state machine with customizable initial value. *)
 module Make
     (A : Addable)
     (_ : sig

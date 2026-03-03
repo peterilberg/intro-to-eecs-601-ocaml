@@ -12,6 +12,8 @@ let events = ["a1"; "a2"; "a3"; "a4"]
 let distribution_a = Uniform.of_list events
 ```
 
+## Tests
+
 ```ocaml
 # Discrete.to_list distribution_a
 - : (string * float) list =

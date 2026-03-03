@@ -11,6 +11,8 @@ open Distributions
 let distribution_x = Delta.of_event "x"
 ```
 
+## Tests
+
 ```ocaml
 # Discrete.to_list distribution_x
 - : (string * float) list = [("x", 1.)]

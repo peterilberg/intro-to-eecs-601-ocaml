@@ -30,6 +30,8 @@ let inputs = Seq.init 20 (Fun.const action) |> List.of_seq
 module CopyMachine = Run.Make (Stochastic.Make (CopyMachineModel))
 ```
 
+## Tests
+
 ```ocaml
 # CopyMachine.run inputs
 - : CopyMachineModel.Output.t list =

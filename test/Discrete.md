@@ -12,6 +12,8 @@ let events = [("a1", 0.9); ("a2", 0.1)]
 let distribution_a = Discrete.of_list events
 ```
 
+## Tests
+
 ```ocaml
 # Discrete.support distribution_a
 - : string list = ["a1"; "a2"]
