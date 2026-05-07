@@ -12,13 +12,13 @@ projects in Ocaml as an exercise.
 
 Install dependencies:
 
-   opam install mdx ppx_deriving
+    opam install mdx ppx_deriving
 
 Build and run tests:
 
-   dune clean
-   dune build
-   dune test
+    dune clean
+    dune build
+    dune test
 
 ## Use
 
